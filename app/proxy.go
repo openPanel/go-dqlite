@@ -27,23 +27,6 @@ import (
 //
 // In case of errors, details are returned.
 func proxy(ctx context.Context, remote net.Conn, local net.Conn, config *tls.Config) error {
-	tcp, err := extractTCPConn(remote)
-	if err != nil {
-		return err
-	}
-
-	if err := setKeepalive(tcp); err != nil {
-		return err
-	}
-
-	if config != nil {
-		if config.ClientCAs != nil {
-			remote = tls.Server(remote, config)
-		} else {
-			remote = tls.Client(remote, config)
-		}
-	}
-
 	remoteToLocal := make(chan error, 0)
 	localToRemote := make(chan error, 0)
 
@@ -82,7 +65,6 @@ func proxy(ctx context.Context, remote net.Conn, local net.Conn, config *tls.Con
 		if err != nil {
 			errs[0] = fmt.Errorf("local -> remote: %v", err)
 		}
-		tcp.CloseRead()
 		if err := <-remoteToLocal; err != nil {
 			errs[1] = fmt.Errorf("remote -> local: %v", err)
 		}
