@@ -12,12 +12,13 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/pkg/errors"
+	"golang.org/x/sync/semaphore"
+
 	"github.com/canonical/go-dqlite"
 	"github.com/canonical/go-dqlite/client"
 	"github.com/canonical/go-dqlite/driver"
 	"github.com/canonical/go-dqlite/internal/protocol"
-	"github.com/pkg/errors"
-	"golang.org/x/sync/semaphore"
 )
 
 // used to create a unique driver name, MUST be modified atomically
@@ -272,12 +273,12 @@ func New(dir string, options ...Option) (app *App, err error) {
 				remote := <-o.Conn.acceptCh
 
 				// Write the status line and upgrade header by hand since w.WriteHeader() would fail after Hijack().
-				data := []byte("HTTP/1.1 101 Switching Protocols\r\nUpgrade: dqlite\r\n\r\n")
-				n, err := remote.Write(data)
-				if err != nil || n != len(data) {
-					remote.Close()
-					panic(fmt.Errorf("failed to write connection header: %w", err))
-				}
+				// data := []byte("HTTP/1.1 101 Switching Protocols\r\nUpgrade: dqlite\r\n\r\n")
+				// n, err := remote.Write(data)
+				// if err != nil || n != len(data) {
+				// 	remote.Close()
+				// 	panic(fmt.Errorf("failed to write connection header: %w", err))
+				// }
 
 				local, err := net.Dial("unix", nodeBindAddress)
 				if err != nil {
